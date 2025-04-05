@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="Approach">
+    <ReactiveFallback>
+      <ReactiveParallel failure_count="1"
+                        success_count="-1">
+        <CheckFloatForDuration topic_name="/follower/offset_position_y"
+                               min="-1.0"
+                               max="1.0"
+                               min_success_duration="2.0"
+                               min_failure_duration="2.0"/>
+        <CheckFloatForDuration topic_name="/follower/offset_position_y_delta"
+                               min="-0.25"
+                               max="0.25"
+                               min_success_duration="2.0"
+                               min_failure_duration="2.0"/>
+      </ReactiveParallel>
+      <Parallel failure_count="1"
+                success_count="-1">
+        <LogToRos log_msg="Slow and furious"
+                  log_level="INFO"/>
+        <PublishFloat topic_name="/follower/core/thruster_cmd_float"
+                      data="0.5"
+                      duration="-1.0"
+                      frequency="10.0"/>
+        <Sequence>
+          <ReactiveFallback>
+            <CheckFloatForDuration topic_name="/follower/offset_position_y_delta"
+                                   min="-0.35"
+                                   max="0.35"
+                                   min_success_duration="1.0"
+                                   min_failure_duration="1.0"/>
+            <Sequence>
+              <LogToRos log_msg="y_delta_pid only"
+                        log_level="INFO"/>
+              <Parallel failure_count="1"
+                        success_count="-1">
+                <RunPid action_name="/y_delta_pid_aggressive"
+                        setpoint="0.0"/>
+                <PublishFloat topic_name="/follower/core/thrust_vector_cmd_horizontal/y"
+                              data="0.0"
+                              duration="-1.0"
+                              frequency="10.0"/>
+              </Parallel>
+            </Sequence>
+          </ReactiveFallback>
+          <Parallel failure_count="1"
+                    success_count="-1">
+            <LogToRos log_msg="Both y pid"
+                      log_level="INFO"/>
+            <RunPid action_name="/y_pid_turn"
+                    setpoint="0.0"/>
+            <RunPid action_name="/y_delta_pid_turn"
+                    setpoint="0.0"/>
+          </Parallel>
+        </Sequence>
+      </Parallel>
+    </ReactiveFallback>
+  </BehaviorTree>
+
+  <BehaviorTree ID="CheckCondition">
+    <Sequence>
+      <GetFloatFromTopic data="{data}"
+                         topic_name="{topic_name}"/>
+      <ScriptCondition code="(min&lt;=data) &amp;&amp; (data&lt;=max)"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="FollowerMainTree">
+    <ReactiveSequence>
+      <SubTree ID="Approach"/>
+      <SubTree ID="Maintain"/>
+    </ReactiveSequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Maintain">
+    <Parallel failure_count="1"
+              success_count="-1">
+      <LogToRos log_msg="Fast and steady"
+                log_level="INFO"/>
+      <WhileDoElse>
+        <Sequence>
+          <GetFloatFromTopic data="{y}"
+                             topic_name="/follower/offset_position_y"/>
+          <ScriptCondition code="(-0.2&lt;=y) &amp;&amp; (y&lt;=0.2)"/>
+        </Sequence>
+        <PublishFloat topic_name="/follower/core/thrust_vector_cmd_horizontal/y"
+                      data="0.0"
+                      duration="-1.0"
+                      frequency="10.0"/>
+        <RunPid action_name="/y_pid"
+                setpoint="0.0"/>
+      </WhileDoElse>
+      <RunPid action_name="/y_delta_pid"
+              setpoint="0.0"/>
+      <RunPid action_name="/x_pid"
+              setpoint="0.0"/>
+    </Parallel>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="CheckFloatForDuration">
+      <input_port name="topic_name"
+                  default="__default__placeholder__"
+                  type="std::string">Topic name</input_port>
+      <input_port name="min"
+                  type="float"/>
+      <input_port name="max"
+                  type="float"/>
+      <input_port name="min_success_duration"
+                  default="1.0"
+                  type="float">Minimum duration to consider the condition successful</input_port>
+      <input_port name="min_failure_duration"
+                  default="1.0"
+                  type="float">Minimum duration to consider the condition failed</input_port>
+    </Action>
+    <Action ID="GetFloatFromTopic">
+      <output_port name="data"
+                   type="float">Data received from the topic (float)</output_port>
+      <input_port name="topic_name"
+                  default="__default__placeholder__"
+                  type="std::string">Topic name</input_port>
+    </Action>
+    <Action ID="LogToRos">
+      <input_port name="log_msg"
+                  type="std::string"/>
+      <input_port name="log_level"
+                  default="INFO"
+                  type="std::string">Log level: DEBUG, INFO, WARN, ERROR, FATAL</input_port>
+    </Action>
+    <Action ID="PublishFloat">
+      <input_port name="topic_name"
+                  default="__default__placeholder__"
+                  type="std::string">Topic name</input_port>
+      <input_port name="data"
+                  default="0.0"
+                  type="float">Value of the float32 message</input_port>
+      <input_port name="duration"
+                  default="1.0"
+                  type="float">Duration to publish for (secs)</input_port>
+      <input_port name="frequency"
+                  default="10.0"
+                  type="float">Frequency of the published message (Hz)</input_port>
+    </Action>
+    <Control ID="ReactiveParallel">
+      <input_port name="failure_count"
+                  default="1"
+                  type="int">number of children that need to fail to trigger a FAILURE</input_port>
+      <input_port name="success_count"
+                  default="-1"
+                  type="int">number of children that need to succeed to trigger a SUCCESS</input_port>
+    </Control>
+    <Action ID="RunPid">
+      <input_port name="action_name"
+                  type="std::string">Action server name</input_port>
+      <input_port name="setpoint"
+                  default="0.0"
+                  type="float">The desired setpoint</input_port>
+    </Action>
+  </TreeNodesModel>
+
+</root>

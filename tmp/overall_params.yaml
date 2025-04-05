@@ -1,0 +1,61 @@
+# relative_target_position_publisher:
+#   ros__parameters:
+#     x: -7.0
+#     y: -9.0
+#     z: 0.0
+#     follower_position_topic: '/follower/filtered_position'
+#     follower_offset_position_x_topic: '/follower/offset_position_x'
+#     follower_offset_position_y_topic: '/follower/offset_position_y'
+#     follower_offset_position_z_topic: '/follower/offset_position_z'
+#     follower_offset_position_topic: '/follower/offset_position'
+#     og_target_position_topic: '/follower/target_position'
+
+agent2_tf_repub:
+  ros__parameters:
+    parent_frame: 'agent2/target'
+    child_frame: 'follower/filtered_position'
+    topic_x: '/follower/offset_position_x'
+    topic_y: '/follower/offset_position_y'
+    topic_z: '/follower/offset_position_z'
+
+agent0_gps_heading_to_tf:
+  ros__parameters:
+    origin_gps_topic: '/origin_gps'
+    heading_topic: '/agent0/core/heading'
+    parent_frame: 'world'
+    child_frame: 'agent0/base_link'
+
+ground_truth_tf2:
+  ros__parameters:
+    follower_relative_gt_topic: '/follower/relative_gt'
+    leader1_path_topic: '/leader1/path'
+    leader2_path_topic: '/leader2/path'
+    follower_path_topic: '/follower/path'
+    target_position_path_topic: '/leader1/target_position_path'
+
+ping_synchronizer:
+  ros__parameters:
+    interval_ms: 500
+    leader1_acoustic_topic: '/leader1/acoustic/write'
+    leader2_acoustic_topic: '/leader2/acoustic/write'
+
+string_stamped_processing:
+  ros__parameters:
+    follower_acoustic_topic: '/follower/acoustic/read'
+    leader1_distance_topic: '/follower/distance_to_leader1'
+    leader2_distance_topic: '/follower/distance_to_leader2'
+
+# fuse_distance_triangulation:
+#   ros__parameters:
+#     leader1_distance_topic: '/follower/distance_to_leader1'
+#     leader2_distance_topic: '/follower/distance_to_leader2'
+#     follower_relative_position_triangulation_topic: '/follower/relative_triangulation'
+#     follower_depth_topic: '/follower/core/depth300_pressure'
+#     leaders_distance: 10.0
+#     follower_depth_offset: 0.1
+
+get_differential_value:
+  ros__parameters:
+    input_topic: '/follower/offset_position_y'
+    output_topic: '/follower/offset_position_y_delta'
+    rpm_float_topic: '/follower/core/thruster_cmd_float'

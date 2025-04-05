@@ -1,0 +1,59 @@
+y_pid_approach:
+  ros__parameters:
+    kp: 0.02
+    ki: 0.0
+    kd: 0.4
+    dt: 0.5
+    max: 0.1
+    min: -0.1
+    unwinding_factor: 3.0
+    is_axis_inverted: 1   # 1 or -1
+    is_verbose: false
+
+    input_topic: '/follower/offset_position_y'
+    output_topic: '/follower/core/thrust_vector_cmd_horizontal'
+
+y_pid_maintain:
+  ros__parameters:
+    kp: 0.012
+    ki: 0.0
+    kd: 0.015
+    dt: 0.5
+    max: 0.1
+    min: -0.1
+    unwinding_factor: 1.0
+    is_axis_inverted: 1   # 1 or -1
+    is_verbose: false
+
+    input_topic: '/follower/offset_position_y'
+    output_topic: '/follower/core/thrust_vector_cmd_horizontal'
+
+y_pid_turn:
+  ros__parameters:
+    kp: 0.016
+    ki: 0.0
+    kd: 0.1
+    dt: 0.5
+    max: 0.1
+    min: -0.1
+    unwinding_factor: 1.0
+    is_axis_inverted: 1   # 1 or -1
+    is_verbose: false
+
+    input_topic: '/follower/offset_position_y'
+    output_topic: '/follower/core/thrust_vector_cmd_horizontal'
+
+x_pid:
+  ros__parameters:
+    kp: 0.5
+    ki: 0.0
+    kd: 0.4
+    dt: 0.5
+    max: 1.0
+    min: -1.0
+    unwinding_factor: 3.0
+    is_axis_inverted: 1   # 1 or -1
+    is_verbose: false
+
+    input_topic: '/follower/offset_position_x'
+    output_topic: '/follower/core/thruster_cmd_float'

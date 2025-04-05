@@ -1,0 +1,48 @@
+<launch>
+    <node name="ground_truth_tf2" exec="ground_truth_tf2" pkg="formation_controller" >
+        <param name="follower_relative_gt_topic" value="/follower/relative_gt"/>
+        <param name="leader1_path_topic" value="/leader1/path"/>
+        <param name="leader2_path_topic" value="/leader2/path"/>
+        <param name="follower_path_topic" value="/follower/path"/>
+        <param name="target_position_path_topic" value="/leader1/target_position_path"/>
+    </node>
+
+    <node name="ping_synch" exec="ping_synchronizer" pkg="formation_controller" >
+        <param name="interval_ms" value="500"/>
+        <param name="leader1_acoustic_topic" value="/leader1/acoustic/write"/>
+        <param name="leader2_acoustic_topic" value="/leader2/acoustic/write"/>
+    </node>
+
+    <node name="string_stamped_processing" exec="string_stamped_processing" pkg="formation_controller" >
+        <param name="follower_acoustic_topic" value="/follower/acoustic/read"/>
+        <param name="leader1_distance_topic" value="/follower/distance_to_leader1"/>
+        <param name="leader2_distance_topic" value="/follower/distance_to_leader2"/>
+    </node>
+
+    <node name="fuse_distance_triangulation" exec="fuse_distance_triangulation" pkg="formation_controller" >
+        <param name="leader1_distance_topic" value="/follower/distance_to_leader1"/>
+        <param name="leader2_distance_topic" value="/follower/distance_to_leader2"/>
+        <param name="follower_relative_position_triangulation_topic" value="/follower/relative_triangulation"/>
+        <param name="follower_depth_topic" value="/follower/core/depth300_pressure"/>
+        <param name="leaders_distance" value="10.0"/>
+        <param name="follower_depth_offset" value="0.1"/>
+    </node>
+
+
+    <node name="relative_target_position_publisher" exec="relative_target_position_publisher" pkg="formation_controller" output="screen">
+        <param name="follower_position_topic" value="/follower/filtered_position"/>
+        <param name="follower_offset_position_x_topic" value="/follower/offset_position_x"/>
+        <param name="follower_offset_position_y_topic" value="/follower/offset_position_y"/>
+        <param name="follower_offset_position_z_topic" value="/follower/offset_position_z"/>
+        <param name="follower_offset_position_topic" value="/follower/offset_position"/>
+        <param name="og_target_position_topic" value="/follower/target_position"/>
+        <param from="$(find-pkg-share formation_controller)/config/params.yaml" />
+    </node>
+
+    <node name="filterpy" exec="position_filter" pkg="position_filter" output="screen" />
+
+    <include file="$(find-pkg-share formation_controller)/launch/pid_controller.launch.xml"/>
+    <include file="$(find-pkg-share sam_btcpp)/launch/follower.launch.xml"/>
+
+    <!-- <executable cmd="ros2 bag record -a"/> -->
+</launch>

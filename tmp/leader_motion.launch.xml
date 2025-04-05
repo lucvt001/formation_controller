@@ -1,0 +1,10 @@
+<launch>
+    <node name="leader_motion" exec="leader_motion" pkg="formation_controller" output="screen">
+        <param name="leader1_thruster1_topic" value="/leader1/core/thruster1_cmd"/>
+        <param name="leader1_thruster2_topic" value="/leader1/core/thruster2_cmd"/>
+        <param name="leader2_thruster1_topic" value="/leader2/core/thruster1_cmd"/>
+        <param name="leader2_thruster2_topic" value="/leader2/core/thruster2_cmd"/>
+        <param name="rpm" value="300"/>
+        <param name="duration" value="30.0"/>
+    </node>
+</launch>

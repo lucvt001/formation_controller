@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4">
+  <BehaviorTree ID="LeadersGoingStraight">
+    <Parallel failure_count="1"
+              success_count="-1">
+      <SubTree ID="PublishRpmForDuration"
+               topic="/leader1/core/thruster1_cmd"
+               rpm="{rpm}"
+               duration="{duration}"
+               _autoremap="true"/>
+      <SubTree ID="PublishRpmForDuration"
+               topic="/leader2/core/thruster1_cmd"
+               rpm="{rpm}"
+               duration="{duration}"
+               _autoremap="true"/>
+      <SubTree ID="PublishThrustVectorForDuration"
+               topic="/leader1/core/thrust_vector_cmd"
+               horizontal_radians="0.0"
+               vertical_radians="0.05"
+               duration="{duration}"
+               _autoremap="true"/>
+      <SubTree ID="PublishThrustVectorForDuration"
+               topic="/leader2/core/thrust_vector_cmd"
+               horizontal_radians="0.0"
+               vertical_radians="0.05"
+               duration="{duration}"
+               _autoremap="true"/>
+    </Parallel>
+  </BehaviorTree>
+
+  <BehaviorTree ID="LeadersStraightAndTurn">
+    <Sequence>
+      <SubTree ID="LeadersGoingStraight"
+               rpm="600"
+               duration="5.0"
+               _autoremap="true"/>
+      <Parallel name="Tricky turn left"
+                failure_count="1"
+                success_count="-1">
+        <Script code="duration:=6.0"/>
+        <SubTree ID="PublishRpmForDuration"
+                 topic="/leader1/core/thruster1_cmd"
+                 rpm="200"
+                 duration="{duration}"
+                 _autoremap="true"/>
+        <SubTree ID="PublishRpmForDuration"
+                 topic="/leader2/core/thruster1_cmd"
+                 rpm="1000"
+                 duration="{duration}"
+                 _autoremap="true"/>
+        <SubTree ID="PublishThrustVectorForDuration"
+                 topic="/leader1/core/thrust_vector_cmd"
+                 horizontal_radians="-0.1"
+                 vertical_radians="0.05"
+                 duration="{duration}"
+                 _autoremap="true"/>
+        <SubTree ID="PublishThrustVectorForDuration"
+                 topic="/leader2/core/thrust_vector_cmd"
+                 horizontal_radians="-0.023"
+                 vertical_radians="0.05"
+                 duration="{duration}"
+                 _autoremap="true"/>
+      </Parallel>
+      <SubTree ID="LeadersGoingStraight"
+               rpm="800"
+               duration="20.0"
+               _autoremap="true"/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PublishRpmForDuration">
+    <Sequence>
+      <Script code="duration:=duration"/>
+      <GetRosTime time="{start_time}"/>
+      <WhileDoElse>
+        <Sequence>
+          <GetRosTime time="{current_time}"/>
+          <ScriptCondition code="current_time - start_time &lt; duration"/>
+        </Sequence>
+        <KeepRunningUntilFailure>
+          <PublishRPM topic_name="{topic}"
+                      rpm="{rpm}"
+                      duration="1.000000"
+                      frequency="10.000000"/>
+        </KeepRunningUntilFailure>
+        <AlwaysSuccess/>
+      </WhileDoElse>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PublishThrustVectorForDuration">
+    <Sequence>
+      <Script code="duration:=duration"/>
+      <GetRosTime time="{start_time}"/>
+      <WhileDoElse>
+        <Sequence>
+          <GetRosTime time="{current_time}"/>
+          <ScriptCondition code="current_time - start_time &lt; duration"/>
+        </Sequence>
+        <KeepRunningUntilFailure>
+          <PublishThrustVector topic_name="{topic}"
+                               vertical_radians="{vertical_radians}"
+                               horizontal_radians="{horizontal_radians}"
+                               duration="1.0"
+                               frequency="10.0"/>
+        </KeepRunningUntilFailure>
+        <AlwaysSuccess/>
+      </WhileDoElse>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="Test">
+    <PublishRPM topic_name="/test"
+                rpm="1000"
+                duration="60.0"
+                frequency="30.0"/>
+  </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="GetRosTime">
+      <output_port name="time"
+                   type="double">Time since start of ros launch (secs)</output_port>
+    </Action>
+    <SubTree ID="LeadersGoingStraight"
+             editable="true">
+      <input_port name="rpm"
+                  default="0"/>
+      <input_port name="duration"
+                  default="1.0"/>
+    </SubTree>
+    <Action ID="PublishRPM">
+      <input_port name="topic_name"
+                  default="__default__placeholder__"
+                  type="std::string">Topic name</input_port>
+      <input_port name="rpm"
+                  default="0"
+                  type="int">Thruster rpm to be published (between 0 and 1000)</input_port>
+      <input_port name="duration"
+                  default="1.0"
+                  type="float">Duration to publish for (secs)</input_port>
+      <input_port name="frequency"
+                  default="10.0"
+                  type="float">Frequency of the published message (Hz)</input_port>
+    </Action>
+    <SubTree ID="PublishRpmForDuration"
+             editable="true">
+      <input_port name="topic">Topic name</input_port>
+      <input_port name="rpm"
+                  default="0">Thruster rpm to be published</input_port>
+      <input_port name="duration"
+                  default="1.0">Duration for publish (secs)</input_port>
+    </SubTree>
+    <Action ID="PublishThrustVector">
+      <input_port name="topic_name"
+                  default="__default__placeholder__"
+                  type="std::string">Topic name</input_port>
+      <input_port name="vertical_radians"
+                  default="0.0"
+                  type="float">Between -0.2 to 0.2 radians</input_port>
+      <input_port name="horizontal_radians"
+                  default="0.0"
+                  type="float">Between -0.2 to 0.2 radians</input_port>
+      <input_port name="duration"
+                  default="1.0"
+                  type="float">Duration to publish for (secs)</input_port>
+      <input_port name="frequency"
+                  default="10.0"
+                  type="float">Frequency of the published message (Hz)</input_port>
+    </Action>
+    <SubTree ID="PublishThrustVectorForDuration"
+             editable="true">
+      <input_port name="topic">Topic name</input_port>
+      <input_port name="horizontal_radians"
+                  default="0.0">Between -0.2 and 0.2</input_port>
+      <input_port name="vertical_radians"
+                  default="0.0">Between -0.2 and 0.2</input_port>
+      <input_port name="duration"
+                  default="1.0">Duration (secs)</input_port>
+    </SubTree>
+  </TreeNodesModel>
+
+</root>
