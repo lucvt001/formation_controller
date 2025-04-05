@@ -1,0 +1,18 @@
+# All in FLU frame, meters
+# All static transforms from "supreme_leader"
+# To "agent0", "agent1", "Agent2" frames
+# Usually, agent0 is the leader
+agent0/target:
+  x: 0.0
+  y: 0.0
+  z: 0.0
+
+follower/target:
+  x: 0.0
+  y: -10.0
+  z: 0.0
+
+agent2/target:
+  x: -5.0
+  y: -6.0
+  z: 0.0
