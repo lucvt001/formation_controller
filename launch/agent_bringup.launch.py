@@ -2,7 +2,7 @@ from ast import In
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import Action, LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, OpaqueFunction, ExecuteProcess
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, PushRosNamespace
 from launch.substitutions import LaunchConfiguration, PythonExpression
@@ -14,6 +14,7 @@ launch_args = [
     DeclareLaunchArgument('use_gps', default_value='True', description='gps or filter. True for gps (leaders), False for followers (filter).'),
     DeclareLaunchArgument('is_sam', default_value='False', description='True if running on SAM, False otherwise. Affect the launch of relay nodes.'),
     DeclareLaunchArgument('is_real', default_value='True', description='True if running on real robot, False otherwise. If sim, it will reuse some nodes from leader.'),
+    DeclareLaunchArgument('rosbag', default_value='True', description='True to start ros2bag record.'),
 ]
 
 def launch_setup(context: LaunchContext) -> list[Action]:
@@ -25,12 +26,19 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     use_gps = LaunchConfiguration('use_gps')
     is_sam = LaunchConfiguration('is_sam')
     is_real = LaunchConfiguration('is_real')
+    rosbag = LaunchConfiguration('rosbag')
 
     # Launch the rover node
     rover = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('arduagent'), 'launch', 'rover_bringup.launch.py')
         ), condition=UnlessCondition(PythonExpression([is_real, ' and not ', is_sam]))
+    )
+
+    # Rosbag
+    record_bag = ExecuteProcess(
+        cmd=['ros2', 'bag', 'record', '-a'],
+        condition=IfCondition(PythonExpression([rosbag])),
     )
 
     # Subscribe to gps and heading topic of supreme leader. Broadcast world (utm) -> map, no translation, only rotation
@@ -132,6 +140,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     return [
         PushRosNamespace(ns.perform(context)),
         rover,
+        record_bag,
         origin_pub,
         tf_repub,
         formation_shape_broadcaster,
