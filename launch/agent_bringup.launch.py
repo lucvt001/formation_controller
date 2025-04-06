@@ -1,3 +1,4 @@
+from ast import In
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import Action, LaunchDescription
@@ -11,8 +12,8 @@ from launch.launch_context import LaunchContext
 launch_args = [
     DeclareLaunchArgument('ns', default_value='follower', description='Namespace for the agent. Should be agent0, agent1, agent2, etc.'),
     DeclareLaunchArgument('use_gps', default_value='True', description='gps or filter. True for gps (leaders), False for followers (filter).'),
-    DeclareLaunchArgument('is_sam', default_value='True', description='True if running on SAM, False otherwise. Affect the launch of relay nodes.'),
-    DeclareLaunchArgument('is_real', default_value='False', description='True if running on real robot, False otherwise. If sim, it will reuse some nodes from leader.'),
+    DeclareLaunchArgument('is_sam', default_value='False', description='True if running on SAM, False otherwise. Affect the launch of relay nodes.'),
+    DeclareLaunchArgument('is_real', default_value='True', description='True if running on real robot, False otherwise. If sim, it will reuse some nodes from leader.'),
 ]
 
 def launch_setup(context: LaunchContext) -> list[Action]:
@@ -24,6 +25,13 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     use_gps = LaunchConfiguration('use_gps')
     is_sam = LaunchConfiguration('is_sam')
     is_real = LaunchConfiguration('is_real')
+
+    # Launch the rover node
+    rover = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('arduagent'), 'launch', 'rover_bringup.launch.py')
+        ), condition=UnlessCondition(PythonExpression([is_real, ' and not ', is_sam]))
+    )
 
     # Subscribe to gps and heading topic of supreme leader. Broadcast world (utm) -> map, no translation, only rotation
     # Publish origin gps to /NS/origin_gps so that each agent can calculate its current local position, FLU frame
@@ -123,6 +131,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
 
     return [
         PushRosNamespace(ns.perform(context)),
+        rover,
         origin_pub,
         tf_repub,
         formation_shape_broadcaster,
