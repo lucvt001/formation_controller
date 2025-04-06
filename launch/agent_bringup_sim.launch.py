@@ -14,7 +14,7 @@ def generate_launch_description():
             'is_sam': 'True',
             'is_real': 'False',
             'run_rover': 'False',
-            'rosbag': 'True',
+            'rosbag': 'False',
         }.items()
     )
 

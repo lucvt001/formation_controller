@@ -33,7 +33,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     rover = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('arduagent'), 'launch', 'rover_bringup.launch.py')
-        ), condition=UnlessCondition(PythonExpression([run_rover]))
+        ), condition=IfCondition(PythonExpression([run_rover]))
     )
 
     # Rosbag
