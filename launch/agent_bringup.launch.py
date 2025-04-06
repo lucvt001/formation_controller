@@ -1,4 +1,3 @@
-from ast import In
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import Action, LaunchDescription
@@ -14,6 +13,7 @@ launch_args = [
     DeclareLaunchArgument('use_gps', default_value='True', description='gps or filter. True for gps (leaders), False for followers (filter).'),
     DeclareLaunchArgument('is_sam', default_value='False', description='True if running on SAM, False otherwise. Affect the launch of relay nodes.'),
     DeclareLaunchArgument('is_real', default_value='True', description='True if running on real robot, False otherwise. If sim, it will reuse some nodes from leader.'),
+    DeclareLaunchArgument('run_rover', default_value='True', description='True to run rover ros node.'),
     DeclareLaunchArgument('rosbag', default_value='True', description='True to start ros2bag record.'),
 ]
 
@@ -26,13 +26,14 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     use_gps = LaunchConfiguration('use_gps')
     is_sam = LaunchConfiguration('is_sam')
     is_real = LaunchConfiguration('is_real')
+    run_rover = LaunchConfiguration('run_rover')
     rosbag = LaunchConfiguration('rosbag')
 
     # Launch the rover node
     rover = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('arduagent'), 'launch', 'rover_bringup.launch.py')
-        ), condition=UnlessCondition(PythonExpression([is_real, ' and not ', is_sam]))
+        ), condition=UnlessCondition(PythonExpression([run_rover]))
     )
 
     # Rosbag
