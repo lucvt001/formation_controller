@@ -116,6 +116,13 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         package='formation_controller', parameters=[config]
     )
 
+    # Required for the controller to work
+    sum_and_scale_node = Node(
+        name='sum_and_scale',
+        executable='sum_and_scale',
+        package='formation_controller', parameters=[config]
+    )
+
     # Relay nodes for SAM
     relay_nodes = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -150,6 +157,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         ukf_filter,
         pid_servers,
         differential_value_node,
+        sum_and_scale_node,
         relay_nodes,
         bt_planner
     ]

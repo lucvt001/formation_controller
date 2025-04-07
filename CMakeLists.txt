@@ -47,6 +47,9 @@ ament_target_dependencies(gps_heading_to_tf ${ros_dependencies} geodesy)
 add_executable(get_differential_value src/get_differential_value.cpp)
 ament_target_dependencies(get_differential_value ${ros_dependencies})
 
+add_executable(sum_and_scale src/sum_and_scale.cpp)
+ament_target_dependencies(sum_and_scale ${ros_dependencies})
+
 add_executable(origin_pub src/origin_pub.cpp)
 ament_target_dependencies(origin_pub ${ros_dependencies})
 
@@ -59,6 +62,7 @@ install(TARGETS
   tf_repub
   gps_heading_to_tf
   get_differential_value
+  sum_and_scale
   origin_pub
   formation_shape_broadcaster
   DESTINATION lib/${PROJECT_NAME}

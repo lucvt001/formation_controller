@@ -38,3 +38,10 @@
     input_topic: 'offset_position_y'
     output_topic: 'offset_position_y_delta'
     dt: 0.5
+
+/**/sum_and_scale:
+  ros__parameters:
+    input_topic1: 'core/thrust_vector_cmd_horizontal/y'
+    input_topic2: 'core/thrust_vector_cmd_horizontal/y_delta'
+    output_topic: 'core/thrust_vector_cmd_horizontal'
+    scaling_factor: 0.1
