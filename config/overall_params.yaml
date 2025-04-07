@@ -41,7 +41,7 @@
 
 /**/sum_and_scale:
   ros__parameters:
-    input_topic1: 'core/thrust_vector_cmd_horizontal/y'
-    input_topic2: 'core/thrust_vector_cmd_horizontal/y_delta'
-    output_topic: 'core/thrust_vector_cmd_horizontal'
+    input_topic1: 'control/steering/y'
+    input_topic2: 'control/steering/y_delta'
+    output_topic: 'control/steering'
     scaling_factor: 0.1

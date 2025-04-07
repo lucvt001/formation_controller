@@ -10,7 +10,7 @@
     kp: 0.015
     is_axis_inverted: -1
     input_topic: 'offset_position_y'
-    output_topic: 'core/thrust_vector_cmd_horizontal/y'
+    output_topic: 'control/steering/y'
 
 /**/y_delta_pid:
   ros__parameters:
@@ -18,7 +18,7 @@
     kd: 0.5
     is_axis_inverted: -1
     input_topic: 'offset_position_y_delta'
-    output_topic: 'core/thrust_vector_cmd_horizontal/y_delta'
+    output_topic: 'control/steering/y_delta'
 
 # Aggressive
 /**/y_pid_turn:
@@ -26,7 +26,7 @@
     kp: 0.06
     is_axis_inverted: -1
     input_topic: 'offset_position_y'
-    output_topic: 'core/thrust_vector_cmd_horizontal/y'
+    output_topic: 'control/steering/y'
 
 /**/y_delta_pid_turn:
   ros__parameters:
@@ -34,7 +34,7 @@
     kd: 0.5
     is_axis_inverted: -1
     input_topic: 'offset_position_y_delta'
-    output_topic: 'core/thrust_vector_cmd_horizontal/y_delta'
+    output_topic: 'control/steering/y_delta'
 
 # x_pid
 /**/x_pid:
@@ -44,4 +44,4 @@
     kd: 0.08
     unwinding_factor: 3.0
     input_topic: 'offset_position_x'
-    output_topic: 'core/thruster_cmd_float'
+    output_topic: 'control/throttle'
