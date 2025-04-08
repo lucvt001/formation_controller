@@ -123,13 +123,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         package='formation_controller', parameters=[config]
     )
 
-    # Relay nodes for SAM
-    relay_nodes = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('sam_thruster_relay'), 'launch', 'relay_nodes.launch.py')
-        ), condition=IfCondition(PythonExpression([is_sam]))
-    )
-
     # Last but not least, the main controller node
     bt_planner = Node(
         name='bt_planner',
@@ -158,7 +151,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         pid_servers,
         differential_value_node,
         sum_and_scale_node,
-        relay_nodes,
         bt_planner
     ]
 
