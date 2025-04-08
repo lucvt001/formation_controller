@@ -1,8 +1,9 @@
+from ast import In
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import Action, LaunchDescription
 from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, OpaqueFunction, ExecuteProcess
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import PythonLaunchDescriptionSource, FrontendLaunchDescriptionSource
 from launch_ros.actions import Node, PushRosNamespace
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
@@ -91,6 +92,15 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         condition=IfCondition(PythonExpression([use_gps, ' and ', is_real]))
     )
 
+    # In real life, the gps and heading data of the supreme leader is on mqtt
+    # This node listens to the mqtt topic and publish the gps and heading data of the supreme leader to the follower
+    mqtt_client = IncludeLaunchDescription(
+        FrontendLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('mqtt_client'), 'launch', 'standalone.launch.ros2.xml')
+        ), condition=IfCondition(PythonExpression([use_gps, ' and ', is_real])),
+        launch_arguments={'params_file': os.path.join(get_package_share_directory('formation_controller'), 'config', 'mqtt_params.yaml')}.items()
+    )
+
     # Fuse ping_distance1 and ping_distance2 to track x, y, vx, vy of the agent relative to supreme_leader
     # And then broadcast supreme_leader -> agentX transform. Orientation is ignored.
     # Only used for agents relying on ping distance (aka followers)
@@ -147,6 +157,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         formation_shape_broadcaster,
         gps_heading_to_tf,
         leader_gps_heading_to_tf,
+        mqtt_client,
         ukf_filter,
         pid_servers,
         differential_value_node,
