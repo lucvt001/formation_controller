@@ -11,8 +11,8 @@
           - 'waraps/unit/surface/real/MiniUSV1/sensor/position'
           - 'waraps/unit/surface/real/MiniUSV1/sensor/heading'
         waraps/unit/surface/real/MiniUSV1/sensor/position:
-          ros_topic: 'core/gps'
-          ros_type: 'sensor_msgs/msg/NavSatFix'
+          ros_topic: '/agent0/json/gps'
+          primitive: true
         waraps/unit/surface/real/MiniUSV1/sensor/heading:
-          ros_topic: 'core/heading'
-          ros_type: 'std_msgs/msg/Float32'
+          ros_topic: '/agent0/json/heading'
+          primitive: true
