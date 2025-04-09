@@ -5,6 +5,8 @@
       port: 8883
       user: 'ground_control1'
       pass: 'Do_your_thing4'
+      tls:
+        enabled: true
     bridge:
       mqtt2ros:
         mqtt_topics: 
