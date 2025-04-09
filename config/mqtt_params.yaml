@@ -3,8 +3,8 @@
     broker:
       host: '1a9ad048190548b89a225a4175e78661.s1.eu.hivemq.cloud'
       port: 8883
-      user: 'ground_control1'
-      pass: 'Do_your_thing4'
+      user: 'raspi_usv2'
+      pass: 'Raspi_usv2'
       tls:
         enabled: true
     bridge:
