@@ -101,6 +101,13 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         launch_arguments={'params_file': os.path.join(get_package_share_directory('formation_controller'), 'config', 'mqtt_params.yaml')}.items()
     )
 
+    # This is because the MQTT topic is not ros-compliant so it is published as primitive topic
+    mqtt_msg_converter = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(get_package_share_directory('mqtt_msg_converter'), 'launch', 'mqtt_msg_converter.launch.py')
+        ), condition=IfCondition(PythonExpression([use_gps, ' and ', is_real]))
+    )
+
     # Fuse ping_distance1 and ping_distance2 to track x, y, vx, vy of the agent relative to supreme_leader
     # And then broadcast supreme_leader -> agentX transform. Orientation is ignored.
     # Only used for agents relying on ping distance (aka followers)
@@ -158,6 +165,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         gps_heading_to_tf,
         leader_gps_heading_to_tf,
         mqtt_client,
+        mqtt_msg_converter,
         ukf_filter,
         pid_servers,
         differential_value_node,
