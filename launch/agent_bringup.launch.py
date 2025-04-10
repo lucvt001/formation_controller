@@ -1,8 +1,7 @@
-from ast import In
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import Action, LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, OpaqueFunction, ExecuteProcess
+from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, OpaqueFunction, ExecuteProcess, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource, FrontendLaunchDescriptionSource
 from launch_ros.actions import Node, PushRosNamespace
 from launch.substitutions import LaunchConfiguration, PythonExpression
@@ -97,16 +96,16 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     mqtt_client = IncludeLaunchDescription(
         FrontendLaunchDescriptionSource(
             os.path.join(get_package_share_directory('mqtt_client'), 'launch', 'standalone.launch.ros2.xml')
-        ), condition=IfCondition(PythonExpression([use_gps, ' and ', is_real])),
+        ), condition=IfCondition(PythonExpression([is_real])),
         launch_arguments={'params_file': os.path.join(get_package_share_directory('formation_controller'), 'config', 'mqtt_params.yaml')}.items()
     )
 
     # This is because the MQTT topic is not ros-compliant so it is published as primitive topic
-    mqtt_msg_converter = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('mqtt_msg_converter'), 'launch', 'mqtt_msg_converter.launch.py')
-        ), condition=IfCondition(PythonExpression([use_gps, ' and ', is_real]))
-    )
+    # mqtt_msg_converter = IncludeLaunchDescription(
+    #     PythonLaunchDescriptionSource(
+    #         os.path.join(get_package_share_directory('mqtt_msg_converter'), 'launch', 'mqtt_msg_converter.launch.py')
+    #     ), condition=IfCondition(PythonExpression([use_gps, ' and ', is_real]))
+    # )
 
     # Fuse ping_distance1 and ping_distance2 to track x, y, vx, vy of the agent relative to supreme_leader
     # And then broadcast supreme_leader -> agentX transform. Orientation is ignored.
@@ -153,20 +152,27 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         }]
     )
 
+    basic_control_nodes = GroupAction(actions=[
+        TimerAction(period=0.0, actions=[pid_servers]),
+        TimerAction(period=1.0, actions=[differential_value_node]),
+        TimerAction(period=1.5, actions=[sum_and_scale_node]),
+    ])
+
+    positioning_nodes = GroupAction(actions=[
+        TimerAction(period=0.5, actions=[origin_pub]),
+        TimerAction(period=1.0, actions=[formation_shape_broadcaster]),
+        TimerAction(period=1.5, actions=[ukf_filter]),
+        TimerAction(period=1.5, actions=[tf_repub]),
+        TimerAction(period=2.0, actions=[gps_heading_to_tf]),
+        TimerAction(period=2.5, actions=[leader_gps_heading_to_tf]),
+    ])
+
     return [
         PushRosNamespace(ns.perform(context)),
-        TimerAction(period=0.0, actions=[mqtt_client]),
-        TimerAction(period=1.0, actions=[origin_pub]),
-        TimerAction(period=1.5, actions=[tf_repub]),
-        TimerAction(period=2.0, actions=[formation_shape_broadcaster]),
-        TimerAction(period=2.5, actions=[gps_heading_to_tf]),
-        TimerAction(period=3.0, actions=[leader_gps_heading_to_tf]),
-        TimerAction(period=3.5, actions=[pid_servers]),
-        TimerAction(period=4.0, actions=[differential_value_node]),
-        TimerAction(period=4.5, actions=[sum_and_scale_node]),
-        TimerAction(period=4.5, actions=[mqtt_msg_converter]),
-        TimerAction(period=5.0, actions=[ukf_filter]),
-        TimerAction(period=6.0, actions=[rover]),
+        TimerAction(period=0.0, actions=[rover]),
+        TimerAction(period=2.0, actions=[mqtt_client]),
+        TimerAction(period=5.0, actions=[positioning_nodes]),
+        TimerAction(period=8.0, actions=[basic_control_nodes]),
         TimerAction(period=10.0, actions=[bt_planner]),
         TimerAction(period=16.0, actions=[record_bag]),
     ]
