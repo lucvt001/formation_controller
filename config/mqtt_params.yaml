@@ -21,7 +21,19 @@
         ros_topics:
           - 'core/gps'
           - 'core/heading'
+          - 'core/battery0'
+          - 'core/temperature'
+          - 'core/is_armed'
+          - 'core/flight_mode'
         core/gps:
           mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/position'
         core/heading:
           mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/heading'
+        core/battery0:
+          mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/battery0'
+        core/temperature:
+          mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/temperature'
+        core/is_armed:
+          mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/is_armed'
+        core/flight_mode:
+          mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/flight_mode'
