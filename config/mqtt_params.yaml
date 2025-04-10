@@ -13,8 +13,15 @@
           - 'waraps/unit/surface/real/MiniUSV1/sensor/position'
           - 'waraps/unit/surface/real/MiniUSV1/sensor/heading'
         waraps/unit/surface/real/MiniUSV1/sensor/position:
-          ros_topic: '/agent0/json/gps'
-          primitive: true
+          ros_topic: '/agent0/core/gps'
         waraps/unit/surface/real/MiniUSV1/sensor/heading:
-          ros_topic: '/agent0/json/heading'
-          primitive: true
+          ros_topic: '/agent0/core/heading'
+
+      ros2mqtt:
+        ros_topics:
+          - 'core/gps'
+          - 'core/heading'
+        core/gps:
+          mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/position'
+        core/heading:
+          mqtt_topic: 'waraps/unit/surface/real/MiniUSV1/sensor/heading'
