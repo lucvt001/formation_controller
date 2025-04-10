@@ -1,5 +1,4 @@
 import os
-from sqlite3 import Time
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
@@ -53,9 +52,9 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        x_pid,
-        y_pid,
-        y_delta_pid,
-        y_pid_turn,
-        y_delta_pid_turn
+        TimerAction(period=0.0, actions=[x_pid]),
+        TimerAction(period=0.2, actions=[y_pid]),
+        TimerAction(period=0.4, actions=[y_delta_pid]),
+        TimerAction(period=0.6, actions=[y_pid_turn]),
+        TimerAction(period=0.8, actions=[y_delta_pid_turn]),
     ])
