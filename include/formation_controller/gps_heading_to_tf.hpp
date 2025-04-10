@@ -36,7 +36,8 @@ private:
     // Data
     NavSatFix origin_gps_, current_gps_;
     double current_heading_; // Heading in degrees
-    bool gps_received_ = false;
+    bool current_gps_received_ = false;
+    bool origin_gps_received_ = false;
     bool heading_received_ = false;
 
     // Timer

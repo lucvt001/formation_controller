@@ -17,21 +17,21 @@ GPSHeadingToTF::GPSHeadingToTF() : Node("gps_heading_to_tf")
 
     // Initialize subscribers with lambda functions
     gps_sub_ = this->create_subscription<NavSatFix>(
-        current_gps_topic, 10, [this](const NavSatFix::SharedPtr msg) 
+        current_gps_topic, 1, [this](const NavSatFix::SharedPtr msg) 
         {
             current_gps_ = *msg;
-            gps_received_ = true;
+            current_gps_received_ = true;
         });
 
     origin_gps_sub_ = this->create_subscription<NavSatFix>(
-        origin_gps_topic, 10, [this](const NavSatFix::SharedPtr msg) 
+        origin_gps_topic, 1, [this](const NavSatFix::SharedPtr msg) 
         {
             origin_gps_ = *msg;
-            gps_received_ = true;
+            origin_gps_received_ = true;
         });
 
     heading_sub_ = this->create_subscription<Float32>(
-        heading_topic, 10, [this](const Float32::SharedPtr msg) 
+        heading_topic, 1, [this](const Float32::SharedPtr msg) 
         {
             current_heading_ = msg->data;
             heading_received_ = true;
@@ -48,7 +48,12 @@ GPSHeadingToTF::GPSHeadingToTF() : Node("gps_heading_to_tf")
 
 void GPSHeadingToTF::timer_callback()
 {
-    if (!gps_received_ || !heading_received_) return;
+    if (!current_gps_received_ || !heading_received_) return;
+    if (!origin_gps_received_) 
+    {
+        RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 2000, "Waiting for origin GPS data...");
+        return;
+    }
 
     // Calculate local position in the body frame
     Point local_position = gps_to_body(current_gps_, origin_gps_);
@@ -75,7 +80,7 @@ void GPSHeadingToTF::timer_callback()
     tf_broadcaster_->sendTransform(transform);
 
     // Reset flags
-    gps_received_ = false;
+    current_gps_received_ = false;
     heading_received_ = false;
 }
 
