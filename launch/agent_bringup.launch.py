@@ -42,14 +42,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         condition=IfCondition(PythonExpression([rosbag])),
     )
 
-    # Subscribe to gps and heading topic of supreme leader. Broadcast world (utm) -> map, no translation, only rotation
-    # Publish origin gps to /NS/origin_gps so that each agent can calculate its current local position, FLU frame
-    origin_pub = Node(
-        name='origin_pub',
-        executable='origin_pub',
-        package='formation_controller', parameters=[config]
-    )
-
     # Listen to target -> filtered_position transform and publish it to three topics: x, y, z
     # Used for PID control of each axis
     tf_repub = Node(
@@ -143,12 +135,11 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     ])
 
     positioning_nodes = GroupAction(actions=[
-        TimerAction(period=0.5, actions=[origin_pub]),
-        TimerAction(period=1.0, actions=[formation_shape_broadcaster]),
-        TimerAction(period=1.5, actions=[ukf_filter]),
-        TimerAction(period=1.5, actions=[tf_repub]),
-        TimerAction(period=2.0, actions=[gps_heading_to_tf]),
-        TimerAction(period=2.5, actions=[leader_gps_heading_to_tf]),
+        TimerAction(period=0.0, actions=[formation_shape_broadcaster]),
+        TimerAction(period=0.5, actions=[ukf_filter]),
+        TimerAction(period=1.0, actions=[tf_repub]),
+        TimerAction(period=1.5, actions=[gps_heading_to_tf]),
+        TimerAction(period=2.0, actions=[leader_gps_heading_to_tf]),
     ])
 
     return [

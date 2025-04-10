@@ -1,14 +1,6 @@
 # All frame names should have NS/ prefix unless they are not specific to an agent
 # All topic names should not have / in front (should be relative to the namespace) unless otherwise specified
 
-/**/origin_pub:
-  ros__parameters:
-    origin_gps_input_topic: '/agent0/core/gps'  # should be absolute path
-    heading_topic: '/agent0/core/heading' # should be absolute path
-    origin_gps_output_topic: 'origin_gps'
-    world_frame: 'world'
-    local_frame: 'map'
-
 /**/tf_repub:
   ros__parameters:
     parent_frame: 'NS/target'
@@ -20,7 +12,7 @@
 /**/gps_heading_to_tf:
   ros__parameters:
     current_gps_topic: 'core/gps'
-    origin_gps_topic: 'origin_gps'
+    origin_gps_topic: '/origin_gps'
     heading_topic: 'core/heading'
     parent_frame: 'world'
     child_frame: 'NS/base_link'
@@ -28,7 +20,7 @@
 /**/leader_gps_heading_to_tf:
   ros__parameters:
     current_gps_topic: '/agent0/core/gps'
-    origin_gps_topic: 'origin_gps'
+    origin_gps_topic: '/origin_gps'
     heading_topic: '/agent0/core/heading'
     parent_frame: 'world'
     child_frame: 'agent0/base_link'
