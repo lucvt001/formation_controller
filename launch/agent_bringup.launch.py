@@ -128,25 +128,25 @@ def launch_setup(context: LaunchContext) -> list[Action]:
 
     basic_control_nodes = GroupAction(actions=[
         TimerAction(period=0.0, actions=[pid_servers]),
-        TimerAction(period=1.0, actions=[differential_value_node]),
-        TimerAction(period=1.5, actions=[sum_and_scale_node]),
+        TimerAction(period=0.5, actions=[differential_value_node]),
+        TimerAction(period=0.6, actions=[sum_and_scale_node]),
     ])
 
     positioning_nodes = GroupAction(actions=[
         TimerAction(period=0.0, actions=[formation_shape_broadcaster]),
-        TimerAction(period=0.5, actions=[ukf_filter]),
-        TimerAction(period=1.0, actions=[tf_repub]),
-        TimerAction(period=1.5, actions=[gps_heading_to_tf]),
-        TimerAction(period=2.0, actions=[leader_gps_heading_to_tf]),
+        TimerAction(period=0.1, actions=[ukf_filter]),
+        TimerAction(period=0.2, actions=[tf_repub]),
+        TimerAction(period=0.3, actions=[gps_heading_to_tf]),
+        TimerAction(period=0.4, actions=[leader_gps_heading_to_tf]),
     ])
 
     return [
         PushRosNamespace(ns.perform(context)),
         TimerAction(period=0.0, actions=[rover]),
-        TimerAction(period=5.0, actions=[positioning_nodes]),
-        TimerAction(period=8.0, actions=[basic_control_nodes]),
-        TimerAction(period=10.0, actions=[bt_planner]),
-        TimerAction(period=16.0, actions=[record_bag]),
+        TimerAction(period=2.0, actions=[positioning_nodes]),
+        TimerAction(period=5.0, actions=[basic_control_nodes]),
+        TimerAction(period=6.0, actions=[bt_planner]),
+        TimerAction(period=10.0, actions=[record_bag]),
     ]
 
 def generate_launch_description() -> LaunchDescription:
