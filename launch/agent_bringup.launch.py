@@ -11,7 +11,6 @@ from launch.launch_context import LaunchContext
 launch_args = [
     DeclareLaunchArgument('ns', default_value='follower', description='Namespace for the agent. Should be agent0, agent1, agent2, etc.'),
     DeclareLaunchArgument('use_gps', default_value='True', description='gps or filter. True for gps (leaders), False for followers (filter).'),
-    DeclareLaunchArgument('is_sam', default_value='False', description='True if running on SAM, False otherwise. Affect the launch of relay nodes.'),
     DeclareLaunchArgument('is_real', default_value='True', description='True if running on real robot, False otherwise. If sim, it will reuse some nodes from leader.'),
     DeclareLaunchArgument('run_rover', default_value='True', description='True to run rover ros node.'),
     DeclareLaunchArgument('rosbag', default_value='True', description='True to start ros2bag record.'),
@@ -24,7 +23,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
 
     ns = LaunchConfiguration('ns')
     use_gps = LaunchConfiguration('use_gps')
-    is_sam = LaunchConfiguration('is_sam')
     is_real = LaunchConfiguration('is_real')
     run_rover = LaunchConfiguration('run_rover')
     rosbag = LaunchConfiguration('rosbag')
