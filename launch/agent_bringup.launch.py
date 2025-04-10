@@ -117,7 +117,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         package='position_filter',
         condition=UnlessCondition(PythonExpression([use_gps]))
     )
-    ukf_filter = TimerAction(period=1.0, actions=[ukf_filter])
 
     # PID servers for followers control scheme
     pid_servers = IncludeLaunchDescription(
@@ -153,24 +152,23 @@ def launch_setup(context: LaunchContext) -> list[Action]:
             'loop_rate': 20
         }]
     )
-    bt_planner = TimerAction(period=4.0, actions=[bt_planner])
 
     return [
         PushRosNamespace(ns.perform(context)),
-        rover,
-        record_bag,
-        origin_pub,
-        tf_repub,
-        formation_shape_broadcaster,
-        gps_heading_to_tf,
-        leader_gps_heading_to_tf,
-        mqtt_client,
-        mqtt_msg_converter,
-        ukf_filter,
-        pid_servers,
-        differential_value_node,
-        sum_and_scale_node,
-        bt_planner
+        TimerAction(period=0.0, actions=[mqtt_client]),
+        TimerAction(period=1.0, actions=[origin_pub]),
+        TimerAction(period=1.5, actions=[tf_repub]),
+        TimerAction(period=2.0, actions=[formation_shape_broadcaster]),
+        TimerAction(period=2.5, actions=[gps_heading_to_tf]),
+        TimerAction(period=3.0, actions=[leader_gps_heading_to_tf]),
+        TimerAction(period=3.5, actions=[pid_servers]),
+        TimerAction(period=4.0, actions=[differential_value_node]),
+        TimerAction(period=4.5, actions=[sum_and_scale_node]),
+        TimerAction(period=4.5, actions=[mqtt_msg_converter]),
+        TimerAction(period=5.0, actions=[ukf_filter]),
+        TimerAction(period=6.0, actions=[rover]),
+        TimerAction(period=10.0, actions=[bt_planner]),
+        TimerAction(period=16.0, actions=[record_bag]),
     ]
 
 def generate_launch_description() -> LaunchDescription:
