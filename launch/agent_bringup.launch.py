@@ -91,22 +91,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         condition=IfCondition(PythonExpression([use_gps, ' and ', is_real]))
     )
 
-    # In real life, the gps and heading data of the supreme leader is on mqtt
-    # This node listens to the mqtt topic and publish the gps and heading data of the supreme leader to the follower
-    mqtt_client = IncludeLaunchDescription(
-        FrontendLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('mqtt_client'), 'launch', 'standalone.launch.ros2.xml')
-        ), condition=IfCondition(PythonExpression([is_real])),
-        launch_arguments={'params_file': os.path.join(get_package_share_directory('formation_controller'), 'config', 'mqtt_params.yaml')}.items()
-    )
-
-    # This is because the MQTT topic is not ros-compliant so it is published as primitive topic
-    # mqtt_msg_converter = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         os.path.join(get_package_share_directory('mqtt_msg_converter'), 'launch', 'mqtt_msg_converter.launch.py')
-    #     ), condition=IfCondition(PythonExpression([use_gps, ' and ', is_real]))
-    # )
-
     # Fuse ping_distance1 and ping_distance2 to track x, y, vx, vy of the agent relative to supreme_leader
     # And then broadcast supreme_leader -> agentX transform. Orientation is ignored.
     # Only used for agents relying on ping distance (aka followers)
@@ -170,7 +154,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     return [
         PushRosNamespace(ns.perform(context)),
         TimerAction(period=0.0, actions=[rover]),
-        TimerAction(period=2.0, actions=[mqtt_client]),
         TimerAction(period=5.0, actions=[positioning_nodes]),
         TimerAction(period=8.0, actions=[basic_control_nodes]),
         TimerAction(period=10.0, actions=[bt_planner]),
