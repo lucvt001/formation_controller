@@ -19,9 +19,9 @@
 
 /**/leader_gps_heading_to_tf:
   ros__parameters:
-    current_gps_topic: '/agent0/core/gps'
+    current_gps_topic: 'agent0/core/gps'
     origin_gps_topic: 'origin_gps'
-    heading_topic: '/agent0/core/heading'
+    heading_topic: 'agent0/core/heading'
     parent_frame: 'world'
     child_frame: 'agent0/gps_link'
 

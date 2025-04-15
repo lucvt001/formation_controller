@@ -40,20 +40,16 @@ void RelativeTFListener::timer_callback()
     float z = transform_stamped.transform.translation.z;
 
     // Update previous position data
+    if (abs(x - prev_x_) < 1e-6 && abs(y - prev_y_) < 1e-6 && abs(z - prev_z_) < 1e-6) {
+      return; // No change in position
+    }
     prev_x_ = x; prev_y_ = y; prev_z_ = z;
 
     // Publish position data
-    Float32 msg_x;
-    msg_x.data = x;
-    pub_x_->publish(msg_x);
-
-    Float32 msg_y;
-    msg_y.data = y;
-    pub_y_->publish(msg_y);
-
-    Float32 msg_z;
-    msg_z.data = z;
-    pub_z_->publish(msg_z);
+    pub_x_->publish(Float32().set__data(x));
+    pub_y_->publish(Float32().set__data(y));
+    pub_z_->publish(Float32().set__data(z));
+    
   } catch (tf2::TransformException &ex) { }
   
 }
