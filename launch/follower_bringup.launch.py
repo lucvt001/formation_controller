@@ -2,18 +2,16 @@ import os
 from ament_index_python.packages import get_package_share_directory
 from launch import Action, LaunchDescription
 from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, OpaqueFunction, ExecuteProcess, GroupAction
-from launch.launch_description_sources import PythonLaunchDescriptionSource, FrontendLaunchDescriptionSource
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, PushRosNamespace
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_context import LaunchContext
 
 launch_args = [
-    DeclareLaunchArgument('ns', default_value='follower', description='Namespace for the agent. Should be agent0, agent1, agent2, etc.'),
-    DeclareLaunchArgument('use_gps', default_value='True', description='gps or filter. True for gps (leaders), False for followers (filter).'),
-    DeclareLaunchArgument('is_real', default_value='True', description='True if running on real robot, False otherwise. If sim, it will reuse some nodes from leader.'),
-    DeclareLaunchArgument('run_rover', default_value='True', description='True to run rover ros node.'),
-    DeclareLaunchArgument('rosbag', default_value='True', description='True to start ros2bag record.'),
+    DeclareLaunchArgument('ns', description='Namespace for the agent. Should be agent0, agent1, agent2, etc.'),
+    DeclareLaunchArgument('use_ukf', description='True to use UFK result for control, False for GPS (but GPS node is still on for ground truth). Automatically switch between NS/ukf_link and NS/gps_link for control.'),
+    DeclareLaunchArgument('rosbag', description='True to start ros2bag record.'),
 ]
 
 def launch_setup(context: LaunchContext) -> list[Action]:
@@ -22,17 +20,13 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     config = os.path.join(get_package_share_directory('formation_controller'), 'config', 'overall_params.yaml')
 
     ns = LaunchConfiguration('ns')
-    use_gps = LaunchConfiguration('use_gps')
-    is_real = LaunchConfiguration('is_real')
-    run_rover = LaunchConfiguration('run_rover')
+    use_ukf = LaunchConfiguration('use_ukf')
     rosbag = LaunchConfiguration('rosbag')
 
-    # Launch the rover node
-    rover = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('arduagent'), 'launch', 'rover_bringup.launch.py')
-        ), condition=IfCondition(PythonExpression([run_rover]))
-    )
+    if use_ukf.perform(context) == 'True':
+        body_frame_to_use = 'NS/ukf_link'
+    else:
+        body_frame_to_use = 'NS/gps_link'
 
     # Rosbag
     record_bag = ExecuteProcess(
@@ -45,7 +39,8 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     tf_repub = Node(
         name='tf_repub',
         executable='tf_repub',
-        package='formation_controller', parameters=[config]
+        package='formation_controller', 
+        parameters=[config, {'child_frame': body_frame_to_use}],
     )
 
     # Read the yaml file and broadcast all the static transforms: leader -> agentX
@@ -55,40 +50,37 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         package='formation_controller',
         parameters=[{
             'yaml_file_path': os.path.join(get_package_share_directory('formation_controller'), 'config', 'formation_shape.yaml'),
-            'leader_frame': 'agent0/base_link',
+            'leader_frame': 'agent0/gps_link',
         }]
     )
 
     # Listen to gps and heading of this agent. Calculate the local position relative to origin_gps
-    # And then broadcast the transform world (utm) -> agent
-    # Only used for agents on the surface with access to gps (aka leaders)
+    # And then broadcast the transform world (utm) -> agent/gps_link
+    # Always run for all agents as a source of ground truth, regardless of whether it actually has access to gps
     gps_heading_to_tf = Node(
         name='gps_heading_to_tf',
         executable='gps_heading_to_tf',
-        package='formation_controller', parameters=[config],
-        condition=IfCondition(PythonExpression([use_gps]))
+        package='formation_controller', parameters=[config]
     )
 
     # For the other leader which is also on the surface with access to gps
     # Listen to gps and heading of the supreme leader. Calculate the position of the leader relative to origin_gps
-    # And then broadcast the transform world (utm) -> supreme_leader
-    # In simulation, you don't need this node because the supreme leader would already have its own gps_heading_to_tf node
-    # Only needed for real robot bcz the other follower is not ros-communicable with the supreme leader
+    # And then broadcast the transform world (utm) -> supreme_leader/gps_link
+    # If the follower is underwater and does not have access to this info, it should have the ukf node enabled. Else no control:)
     leader_gps_heading_to_tf = Node(
         name='leader_gps_heading_to_tf',
         executable='gps_heading_to_tf',
-        package='formation_controller', parameters=[config],
-        condition=IfCondition(PythonExpression([use_gps, ' and ', is_real]))
+        package='formation_controller', parameters=[config]
     )
 
     # Fuse ping_distance1 and ping_distance2 to track x, y, vx, vy of the agent relative to supreme_leader
-    # And then broadcast supreme_leader -> agentX transform. Orientation is ignored.
+    # And then broadcast supreme_leader -> agent/ukf_link transform. Orientation is ignored.
     # Only used for agents relying on ping distance (aka followers)
     ukf_filter = Node(
         name='ukf_filter',
         executable='position_filter',
         package='position_filter',
-        condition=UnlessCondition(PythonExpression([use_gps]))
+        condition=IfCondition(PythonExpression([use_ukf]))
     )
 
     # PID servers for followers control scheme
@@ -142,11 +134,10 @@ def launch_setup(context: LaunchContext) -> list[Action]:
 
     return [
         PushRosNamespace(ns.perform(context)),
-        TimerAction(period=0.0, actions=[rover]),
-        TimerAction(period=2.0, actions=[positioning_nodes]),
-        TimerAction(period=5.0, actions=[basic_control_nodes]),
-        TimerAction(period=6.0, actions=[bt_planner]),
-        TimerAction(period=10.0, actions=[record_bag]),
+        TimerAction(period=0.0, actions=[positioning_nodes]),
+        TimerAction(period=1.0, actions=[basic_control_nodes]),
+        TimerAction(period=2.0, actions=[bt_planner]),
+        TimerAction(period=6.0, actions=[record_bag]),
     ]
 
 def generate_launch_description() -> LaunchDescription:

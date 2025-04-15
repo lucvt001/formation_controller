@@ -13,20 +13,17 @@ def generate_launch_description():
         )
     )
 
-    agent_bringup = IncludeLaunchDescription(
+    follower_bringup = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
-            os.path.join(get_package_share_directory('formation_controller'), 'launch', 'agent_bringup.launch.py')
+            os.path.join(get_package_share_directory('formation_controller'), 'launch', 'follower_bringup.launch.py')
         ), launch_arguments={
             'ns': 'follower',
-            'use_gps': 'True',
-            'is_sam': 'True',
-            'is_real': 'False',
-            'run_rover': 'True',
+            'use_ukf': 'False',
             'rosbag': 'False',
         }.items()
     )
 
     return LaunchDescription([
-        agent_bringup,
+        follower_bringup,
         relay_nodes,
     ])

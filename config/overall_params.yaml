@@ -4,7 +4,7 @@
 /**/tf_repub:
   ros__parameters:
     parent_frame: 'NS/target'
-    child_frame: 'NS/base_link'
+    child_frame: 'NS/gps_link'    # This will be automatically changed by launch file depending on use_ukf launch param so you don't have to worry about it
     topic_x: 'offset_position_x'
     topic_y: 'offset_position_y'
     topic_z: 'offset_position_z'
@@ -15,15 +15,15 @@
     origin_gps_topic: 'origin_gps'
     heading_topic: 'core/heading'
     parent_frame: 'world'
-    child_frame: 'NS/base_link'
+    child_frame: 'NS/gps_link'
 
 /**/leader_gps_heading_to_tf:
   ros__parameters:
-    current_gps_topic: 'agent0/core/gps'
+    current_gps_topic: '/agent0/core/gps'
     origin_gps_topic: 'origin_gps'
-    heading_topic: 'agent0/core/heading'
+    heading_topic: '/agent0/core/heading'
     parent_frame: 'world'
-    child_frame: 'agent0/base_link'
+    child_frame: 'agent0/gps_link'
 
 /**/get_differential_value:
   ros__parameters:
