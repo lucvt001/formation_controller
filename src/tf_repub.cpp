@@ -23,7 +23,7 @@ RelativeTFListener::RelativeTFListener() : Node("relative_tf_listener"),
 
   // Create a timer to periodically check for the transform
   timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(100),
+    std::chrono::milliseconds(500),
     std::bind(&RelativeTFListener::timer_callback, this));
 }
 
