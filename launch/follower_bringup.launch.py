@@ -111,7 +111,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         package='tuper_btcpp', output='screen',
         parameters=[{
             'xml_directory': os.path.join(get_package_share_directory('tuper_btcpp'), 'behavior_trees'),
-            'tree_name': 'FollowerMainTree',
+            'tree_name': 'FollowerTest',
             # 'do_connect_groot2': True,
             # 'btlog_output_folder': os.path.join(get_package_share_directory('tuper_btcpp'), 'btlogs'),
             'loop_rate': 20

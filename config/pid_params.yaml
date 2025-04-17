@@ -7,7 +7,8 @@
 # Gentle
 /**/y_pid:
   ros__parameters:
-    kp: 0.015
+    kp: 0.02
+    kd: 0.4
     is_axis_inverted: -1
     input_topic: 'offset_position_y'
     output_topic: 'control/steering/y'

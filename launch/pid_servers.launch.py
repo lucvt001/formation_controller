@@ -55,6 +55,6 @@ def generate_launch_description():
         TimerAction(period=0.0, actions=[x_pid]),
         TimerAction(period=0.1, actions=[y_pid]),
         TimerAction(period=0.2, actions=[y_delta_pid]),
-        TimerAction(period=0.3, actions=[y_pid_turn]),
-        TimerAction(period=0.4, actions=[y_delta_pid_turn]),
+        # TimerAction(period=0.3, actions=[y_pid_turn]),
+        # TimerAction(period=0.4, actions=[y_delta_pid_turn]),
     ])
