@@ -48,7 +48,7 @@ float PID::calculate( float setpoint, float current )
     // cout << pid_name_ << " - error: " << error << " integral: " << integral_ << " derivative: " << derivative << " Output: " << output << endl;
     cout << pid_name_ << " - Pout: " << Pout << " Iout: " << Iout << " Dout: " << Dout << " Output: " << output << endl;
 
-  return output;
+  return output * scale_;
 }
 
 void PID::set_unwinding_factor( float unwinding_factor )

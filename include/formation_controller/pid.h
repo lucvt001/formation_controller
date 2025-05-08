@@ -13,8 +13,8 @@ public:
   // max - maximum value of manipulated variable
   // min - minimum value of manipulated variable
   // PID( float Kp, float Ki, float Kd, float dt, float max, float min );
-  PID ( float Kp, float Ki, float Kd, float dt, float max, float min )
-    : Kp_(Kp), Ki_(Ki), Kd_(Kd), dt_(dt), max_(max), min_(min), 
+  PID ( float Kp, float Ki, float Kd, float dt, float max, float min, float scale = 1.0 )
+    : Kp_(Kp), Ki_(Ki), Kd_(Kd), dt_(dt), max_(max), min_(min), scale_(scale),
     prev_error_(0.0), integral_(0.0),
     unwinding_factor_(1.0),
     pid_name_("PID"), verbose_mode_(false) {};
@@ -41,6 +41,7 @@ private:
   float dt_;
   float max_;
   float min_;
+  float scale_;
   float prev_error_;
   float integral_;
   float unwinding_factor_;
