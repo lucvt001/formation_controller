@@ -3,46 +3,25 @@
     dt: 0.5
     is_axis_inverted: 1   # 1 or -1
     unwinding_factor: 1.0   # only affect the integral term. The higher the faster unwind. Set to -1 for instant unwind.
+    scale: 1.0   # scale the output value by a constant
 
 # Gentle
 /**/y_pid:
   ros__parameters:
-    kp: 0.02
-    kd: 0.4
+    kp: 0.012
+    kd: 0.3
+    scale: 0.1
     is_axis_inverted: -1
-    input_topic: 'offset_position_y'
-    output_topic: 'control/steering/y'
-
-/**/y_delta_pid:
-  ros__parameters:
-    kp: 0.5
-    kd: 0.5
-    is_axis_inverted: -1
-    input_topic: 'offset_position_y_delta'
-    output_topic: 'control/steering/y_delta'
-
-# Aggressive
-/**/y_pid_turn:
-  ros__parameters:
-    kp: 0.06
-    is_axis_inverted: -1
-    input_topic: 'offset_position_y'
-    output_topic: 'control/steering/y'
-
-/**/y_delta_pid_turn:
-  ros__parameters:
-    kp: 0.7
-    kd: 0.5
-    is_axis_inverted: -1
-    input_topic: 'offset_position_y_delta'
-    output_topic: 'control/steering/y_delta'
+    input_topic: 'ukf/offset_position_y'
+    output_topic: 'control/steering'
 
 # x_pid
 /**/x_pid:
   ros__parameters:
     kp: 0.3
     ki: 0.01
-    kd: 0.08
+    kd: 0.15
+    min: -0.1
     unwinding_factor: 3.0
-    input_topic: 'offset_position_x'
+    input_topic: 'ukf/offset_position_x'
     output_topic: 'control/throttle'

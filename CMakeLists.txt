@@ -13,6 +13,7 @@ find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(geographic_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(geodesy REQUIRED)
 find_package(tuper_interfaces REQUIRED)
 find_package(tf2 REQUIRED)
@@ -30,6 +31,7 @@ set(ros_dependencies
   sensor_msgs
   geometry_msgs
   geographic_msgs
+  nav_msgs
   tuper_interfaces
   tf2
   tf2_ros
@@ -57,6 +59,9 @@ add_executable(formation_shape_broadcaster src/formation_shape_broadcaster.cpp)
 ament_target_dependencies(formation_shape_broadcaster ${ros_dependencies} yaml-cpp)
 target_link_libraries(formation_shape_broadcaster ${YAML_CPP_LIBRARIES})
 
+add_executable(tf_to_path src/tf_to_path.cpp)
+ament_target_dependencies(tf_to_path ${ros_dependencies})
+
 install(TARGETS
   pid_server
   tf_repub
@@ -65,6 +70,7 @@ install(TARGETS
   sum_and_scale
   origin_pub
   formation_shape_broadcaster
+  tf_to_path
   DESTINATION lib/${PROJECT_NAME}
 )
 

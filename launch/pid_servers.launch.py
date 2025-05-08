@@ -27,34 +27,7 @@ def generate_launch_description():
         parameters=[pid_config]
     )
 
-    y_delta_pid = Node(
-        name='y_delta_pid',
-        executable='pid_server',
-        package='formation_controller',
-        output='screen',
-        parameters=[pid_config]
-    )
-
-    y_pid_turn = Node(
-        name='y_pid_turn',
-        executable='pid_server',
-        package='formation_controller',
-        output='screen',
-        parameters=[pid_config]
-    )
-
-    y_delta_pid_turn = Node(
-        name='y_delta_pid_turn',
-        executable='pid_server',
-        package='formation_controller',
-        output='screen',
-        parameters=[pid_config]
-    )
-
     return LaunchDescription([
-        TimerAction(period=0.0, actions=[x_pid]),
-        TimerAction(period=0.1, actions=[y_pid]),
-        TimerAction(period=0.2, actions=[y_delta_pid]),
-        # TimerAction(period=0.3, actions=[y_pid_turn]),
-        # TimerAction(period=0.4, actions=[y_delta_pid_turn]),
+        x_pid,
+        y_pid,
     ])

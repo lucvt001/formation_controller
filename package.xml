@@ -15,6 +15,7 @@
   <depend>sensor_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>geographic_msgs</depend>
+  <depend>nav_msgs</depend>
   <depend>geodesy</depend>
   <depend>tuper_interfaces</depend>
   <depend>tf2</depend>

@@ -1,12 +1,11 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import Action, LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, OpaqueFunction, ExecuteProcess, GroupAction
+from launch.actions import DeclareLaunchArgument, TimerAction, IncludeLaunchDescription, ExecuteProcess, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, PushRosNamespace
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch.conditions import IfCondition, UnlessCondition
-from launch.launch_context import LaunchContext
 
 launch_args = [
     DeclareLaunchArgument('ns', description='Namespace for the agent. Should be agent0, agent1, agent2, etc.'),
@@ -14,7 +13,7 @@ launch_args = [
     DeclareLaunchArgument('rosbag', description='True to start ros2bag record.'),
 ]
 
-def launch_setup(context: LaunchContext) -> list[Action]:
+def generate_launch_description() -> LaunchDescription:
 
     # Overall configuration file for most nodes
     config = os.path.join(get_package_share_directory('formation_controller'), 'config', 'overall_params.yaml')
@@ -22,11 +21,6 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     ns = LaunchConfiguration('ns')
     use_ukf = LaunchConfiguration('use_ukf')
     rosbag = LaunchConfiguration('rosbag')
-
-    if use_ukf.perform(context) == 'True':
-        body_frame_to_use = 'NS/ukf_link'
-    else:
-        body_frame_to_use = 'NS/gps_link'
 
     # Rosbag
     record_bag = ExecuteProcess(
@@ -36,11 +30,12 @@ def launch_setup(context: LaunchContext) -> list[Action]:
 
     # Listen to target -> filtered_position transform and publish it to three topics: x, y, z
     # Used for PID control of each axis
-    tf_repub = Node(
-        name='tf_repub',
+    tf_repub_gps = Node(
+        name='tf_repub_gps',
         executable='tf_repub',
         package='formation_controller', 
-        parameters=[config, {'child_frame': body_frame_to_use}],
+        namespace=ns,
+        parameters=[config],
     )
 
     # Read the yaml file and broadcast all the static transforms: leader -> agentX
@@ -48,9 +43,9 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         name='formation_shape_broadcaster',
         executable='formation_shape_broadcaster',
         package='formation_controller',
-        parameters=[{
+        namespace=ns,
+        parameters=[config, {
             'yaml_file_path': os.path.join(get_package_share_directory('formation_controller'), 'config', 'formation_shape.yaml'),
-            'leader_frame': 'agent0/gps_link',
         }]
     )
 
@@ -60,6 +55,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     gps_heading_to_tf = Node(
         name='gps_heading_to_tf',
         executable='gps_heading_to_tf',
+        namespace=ns,
         package='formation_controller', parameters=[config]
     )
 
@@ -70,6 +66,7 @@ def launch_setup(context: LaunchContext) -> list[Action]:
     leader_gps_heading_to_tf = Node(
         name='leader_gps_heading_to_tf',
         executable='gps_heading_to_tf',
+        namespace=ns,
         package='formation_controller', parameters=[config]
     )
 
@@ -80,6 +77,34 @@ def launch_setup(context: LaunchContext) -> list[Action]:
         name='ukf_filter',
         executable='position_filter',
         package='position_filter',
+        namespace=ns,
+        condition=IfCondition(PythonExpression([use_ukf])),
+        parameters=[config]
+    )
+
+    tf_repub_ukf = Node(
+        name='tf_repub_ukf',
+        executable='tf_repub',
+        package='formation_controller', 
+        namespace=ns,
+        condition=IfCondition(PythonExpression([use_ukf])),
+        parameters=[config],
+    )
+
+    gps_path = Node(
+        name='gps_path',
+        executable='tf_to_path',
+        package='formation_controller',
+        namespace=ns,
+        parameters=[config]
+    )
+
+    ukf_path = Node(
+        name='ukf_path',
+        executable='tf_to_path',
+        package='formation_controller',
+        namespace=ns,
+        parameters=[config],
         condition=IfCondition(PythonExpression([use_ukf]))
     )
 
@@ -89,59 +114,41 @@ def launch_setup(context: LaunchContext) -> list[Action]:
             os.path.join(get_package_share_directory('formation_controller'), 'launch', 'pid_servers.launch.py')
         )
     )
-
-    # Required for the controller to work
-    differential_value_node = Node(
-        name='get_differential_value',
-        executable='get_differential_value',
-        package='formation_controller', parameters=[config]
-    )
-
-    # Required for the controller to work
-    sum_and_scale_node = Node(
-        name='sum_and_scale',
-        executable='sum_and_scale',
-        package='formation_controller', parameters=[config]
-    )
+    pid_servers = GroupAction(actions=[PushRosNamespace(ns), pid_servers])
 
     # Last but not least, the main controller node
     bt_planner = Node(
         name='bt_planner',
         executable='bt_planner',
         package='tuper_btcpp', output='screen',
+        namespace=ns,
         parameters=[{
             'xml_directory': os.path.join(get_package_share_directory('tuper_btcpp'), 'behavior_trees'),
-            'tree_name': 'FollowerTest',
+            'tree_name': 'FollowerMainTree',
             # 'do_connect_groot2': True,
             # 'btlog_output_folder': os.path.join(get_package_share_directory('tuper_btcpp'), 'btlogs'),
             'loop_rate': 20
         }]
     )
 
-    basic_control_nodes = GroupAction(actions=[
-        TimerAction(period=0.0, actions=[pid_servers]),
-        TimerAction(period=0.5, actions=[differential_value_node]),
-        TimerAction(period=0.6, actions=[sum_and_scale_node]),
-    ])
-
-    positioning_nodes = GroupAction(actions=[
+    positioning_nodes = [
         TimerAction(period=0.0, actions=[formation_shape_broadcaster]),
         TimerAction(period=0.1, actions=[ukf_filter]),
-        TimerAction(period=0.2, actions=[tf_repub]),
-        TimerAction(period=0.3, actions=[gps_heading_to_tf]),
-        TimerAction(period=0.4, actions=[leader_gps_heading_to_tf]),
-    ])
-
-    return [
-        PushRosNamespace(ns.perform(context)),
-        TimerAction(period=0.0, actions=[positioning_nodes]),
-        TimerAction(period=1.0, actions=[basic_control_nodes]),
-        TimerAction(period=2.0, actions=[bt_planner]),
-        TimerAction(period=6.0, actions=[record_bag]),
+        TimerAction(period=0.2, actions=[tf_repub_gps]),
+        TimerAction(period=0.3, actions=[tf_repub_ukf]),
+        TimerAction(period=0.4, actions=[gps_heading_to_tf]),
+        TimerAction(period=0.5, actions=[leader_gps_heading_to_tf]),
     ]
 
-def generate_launch_description() -> LaunchDescription:
+    visualization_nodes = [
+        TimerAction(period=0.6, actions=[gps_path]),
+        TimerAction(period=0.7, actions=[ukf_path]),
+    ]
+
     return LaunchDescription([
-        *launch_args,
-        OpaqueFunction(function=launch_setup)
+        *positioning_nodes,
+        *visualization_nodes,
+        TimerAction(period=1.0, actions=[pid_servers]),
+        TimerAction(period=2.0, actions=[bt_planner]),
+        TimerAction(period=7.0, actions=[record_bag]),
     ])

@@ -37,7 +37,7 @@ void PidServer::execute(const std::shared_ptr<ServerGoalHandle<RunPid>> goal_han
   auto result = std::make_shared<RunPid::Result>();
   float setpoint = goal->setpoint;
 
-  RCLCPP_DEBUG(this->get_logger(), "PidServer is running");
+  RCLCPP_INFO(this->get_logger(), "PidServer running with setpoint %f", setpoint);
 
   pid_.reset();
   rclcpp::Rate rate(10);
@@ -71,10 +71,11 @@ void PidServer::initializePidController()
   float dt = this->declare_parameter("dt", 0.1);
   float max = this->declare_parameter("max", 1.0);
   float min = this->declare_parameter("min", -1.0);
+  float scale = this->declare_parameter("scale", 1.0);
   float unwinding_factor = this->declare_parameter("unwinding_factor", 1.0);
   bool is_verbose = this->declare_parameter("is_verbose", false);
   
-  pid_ = PID(kp, ki, kd, dt, max, min);
+  pid_ = PID(kp, ki, kd, dt, max, min, scale);
   pid_.set_unwinding_factor(unwinding_factor);
   string node_name = this->get_name();
   pid_.enable_verbose_mode(is_verbose, node_name);

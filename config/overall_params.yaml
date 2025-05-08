@@ -1,39 +1,74 @@
 # All frame names should have NS/ prefix unless they are not specific to an agent
 # All topic names should not have / in front (should be relative to the namespace) unless otherwise specified
 
-/**/tf_repub:
+/**:
   ros__parameters:
-    parent_frame: 'NS/target'
-    child_frame: 'NS/gps_link'    # This will be automatically changed by launch file depending on use_ukf launch param so you don't have to worry about it
-    topic_x: 'offset_position_x'
-    topic_y: 'offset_position_y'
-    topic_z: 'offset_position_z'
+    use_sim_time: true
 
-/**/gps_heading_to_tf:
+/**/formation_shape_broadcaster:
+  ros__parameters:
+    leader_frame: 'leader1/base_link_gt'
+
+/**/leader_gps_heading_to_tf:   # This node is unnecessary if you use TF tree from the simulation
+  ros__parameters:
+    current_gps_topic: 'leader1/core/gps'   # Can be changed to fully qualified name if you want to avoid using mqtt
+    origin_gps_topic: 'leader1/origin_gps'  # Can be changed to fully qualified name if you want to avoid using mqtt
+    heading_topic: 'leader1/core/heading'   # Can be changed to fully qualified name if you want to avoid using mqtt
+    parent_frame: 'world'
+    child_frame: 'leader1/base_link_gps'    # This must be the same as the leader_frame in formation_shape_broadcaster
+
+/**/gps_heading_to_tf:        # This node is unnecessary if you use TF tree from the simulation
   ros__parameters:
     current_gps_topic: 'core/gps'
-    origin_gps_topic: 'origin_gps'
+    origin_gps_topic: '/leader1/origin_gps'    # Can be changed to fully qualified name if you want to avoid using mqtt
     heading_topic: 'core/heading'
     parent_frame: 'world'
-    child_frame: 'NS/gps_link'
+    child_frame: 'NS/base_link_gps'
 
-/**/leader_gps_heading_to_tf:
+/**/tf_repub_gps:
   ros__parameters:
-    current_gps_topic: 'agent0/core/gps'
-    origin_gps_topic: 'origin_gps'
-    heading_topic: 'agent0/core/heading'
-    parent_frame: 'world'
-    child_frame: 'agent0/gps_link'
+    parent_frame: 'NS/target'
+    child_frame: 'NS/base_link_gt'    # Either NS/base_link_gps (real life gt) or NS/base_link_gt (in sim, rmb to enable TF)
+    topic_x: 'gps/offset_position_x'
+    topic_y: 'gps/offset_position_y'
+    topic_z: 'gps/offset_position_z'
+
+/**/tf_repub_ukf:
+  ros__parameters:
+    parent_frame: 'NS/target'
+    child_frame: 'NS/base_link_ukf'   # This must be the same as the child_frame in ukf_filter
+    topic_x: 'ukf/offset_position_x'
+    topic_y: 'ukf/offset_position_y'
+    topic_z: 'ukf/offset_position_z'
 
 /**/get_differential_value:
   ros__parameters:
-    input_topic: 'offset_position_y'
-    output_topic: 'offset_position_y_delta'
+    input_topic: 'ukf/offset_position_y'
+    output_topic: 'ukf/offset_position_y_delta'
     dt: 0.5
 
-/**/sum_and_scale:
+/**/ukf_filter:
   ros__parameters:
-    input_topic1: 'control/steering/y'
-    input_topic2: 'control/steering/y_delta'
-    output_topic: 'control/steering'
-    scaling_factor: 0.1
+    leader2_offset: -50.0  # FLU frame. Usually negative number if leader2 is to the right of leader1
+    leader1_distance_topic: 'leader1/distance' # Dont change
+    leader2_distance_topic: 'leader2/distance' # Dont change
+    state_topic: 'ukf/state'  # Mainly for debugging
+    covariance_topic: 'ukf/covariance'  # Mainly for debugging
+    parent_frame: 'leader1/base_link_gt' # This must be the same as the leader_frame in formation_shape_broadcaster
+    child_frame: 'NS/base_link_ukf'  # This must be the same as the child_frame in tf_repub_ukf
+    Q_std: 1.0  # Standard deviation of the process noise
+    R_std: 0.4  # Standard deviation of the measurement noise
+    initial_estimate: [-25.0, 0.0, -25.0, 0.0]  # Initial estimate of the state vector [x, vx, y, vy], FLU frame
+
+/**/gps_path:
+  ros__parameters:
+    parent_frame: 'world'
+    child_frame: 'NS/base_link_gt'   # This must be the same as the child_frame in tf_repub_gps
+    path_topic: 'path/gps_path' 
+
+/**/ukf_path:
+  ros__parameters:
+    parent_frame: 'world'
+    child_frame: 'NS/base_link_ukf'   # This must be the same as the child_frame in ukf_filter
+    path_topic: 'path/ukf_path'
+
