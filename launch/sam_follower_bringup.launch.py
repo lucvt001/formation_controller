@@ -31,6 +31,7 @@ def generate_launch_description():
             'ns': ns,
             'use_ukf': use_ukf,
             'rosbag': 'False',
+            'have_gps': 'True',
         }.items()
     )
 

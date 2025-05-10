@@ -11,6 +11,7 @@ launch_args = [
     DeclareLaunchArgument('ns', description='Namespace for the agent. Should be agent0, agent1, agent2, etc.'),
     DeclareLaunchArgument('use_ukf', description='True to use UFK result for control, False for GPS (but GPS node is still on for ground truth). Automatically switch between NS/ukf_link and NS/gps_link for control.'),
     DeclareLaunchArgument('rosbag', description='True to start ros2bag record.'),
+    DeclareLaunchArgument('have_gps', default_value='True', description='Set to False to disable all the nodes that require GPS. Else you will get a lot of warnings.'),
 ]
 
 def generate_launch_description() -> LaunchDescription:
@@ -21,6 +22,7 @@ def generate_launch_description() -> LaunchDescription:
     ns = LaunchConfiguration('ns')
     use_ukf = LaunchConfiguration('use_ukf')
     rosbag = LaunchConfiguration('rosbag')
+    have_gps = LaunchConfiguration('have_gps')
 
     # Rosbag
     record_bag = ExecuteProcess(
@@ -35,6 +37,7 @@ def generate_launch_description() -> LaunchDescription:
         executable='tf_repub',
         package='formation_controller', 
         namespace=ns,
+        condition=IfCondition(PythonExpression([have_gps])),
         parameters=[config],
     )
 
@@ -56,6 +59,7 @@ def generate_launch_description() -> LaunchDescription:
         name='gps_heading_to_tf',
         executable='gps_heading_to_tf',
         namespace=ns,
+        condition=IfCondition(PythonExpression([have_gps])),
         package='formation_controller', parameters=[config]
     )
 
@@ -67,6 +71,7 @@ def generate_launch_description() -> LaunchDescription:
         name='leader_gps_heading_to_tf',
         executable='gps_heading_to_tf',
         namespace=ns,
+        condition=IfCondition(PythonExpression([have_gps])),
         package='formation_controller', parameters=[config]
     )
 
@@ -96,6 +101,7 @@ def generate_launch_description() -> LaunchDescription:
         executable='tf_to_path',
         package='formation_controller',
         namespace=ns,
+        condition=IfCondition(PythonExpression([have_gps])),
         parameters=[config]
     )
 
@@ -105,7 +111,7 @@ def generate_launch_description() -> LaunchDescription:
         package='formation_controller',
         namespace=ns,
         parameters=[config],
-        condition=IfCondition(PythonExpression([use_ukf]))
+        condition=IfCondition(PythonExpression([use_ukf, ' and ', have_gps])),
     )
 
     # PID servers for followers control scheme
@@ -127,7 +133,7 @@ def generate_launch_description() -> LaunchDescription:
             'tree_name': 'FollowerMainTree',
             # 'do_connect_groot2': True,
             # 'btlog_output_folder': os.path.join(get_package_share_directory('tuper_btcpp'), 'btlogs'),
-            'loop_rate': 20
+            'loop_rate': 20.0
         }]
     )
 

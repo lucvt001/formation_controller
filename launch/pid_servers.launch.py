@@ -5,6 +5,10 @@ from launch_ros.actions import Node
 from launch.actions import TimerAction
 
 def generate_launch_description():
+
+    # Contains use_sim_time param
+    config = os.path.join(get_package_share_directory('formation_controller'), 'config', 'overall_params.yaml')
+
     pid_config = os.path.join(
         get_package_share_directory('formation_controller'),
         'config',
@@ -16,7 +20,7 @@ def generate_launch_description():
         executable='pid_server',
         package='formation_controller',
         output='screen',
-        parameters=[pid_config]
+        parameters=[config, pid_config]
     )
 
     y_pid = Node(
@@ -24,7 +28,7 @@ def generate_launch_description():
         executable='pid_server',
         package='formation_controller',
         output='screen',
-        parameters=[pid_config]
+        parameters=[config, pid_config]
     )
 
     return LaunchDescription([
