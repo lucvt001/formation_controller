@@ -61,8 +61,8 @@ public:
     transform_msg_.child_frame_id = local_frame;
 
     // Initialize timer to publish the origin GPS periodically
-    timer_ = this->create_wall_timer(
-      std::chrono::milliseconds(1000),
+    timer_ = rclcpp::create_timer(
+      this, this->get_clock(), std::chrono::milliseconds(100),
       std::bind(&OriginPub::timer_callback, this));
   }
 

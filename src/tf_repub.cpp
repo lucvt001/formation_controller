@@ -22,8 +22,8 @@ RelativeTFListener::RelativeTFListener() : Node("relative_tf_listener"),
   pub_z_ = this->create_publisher<Float32>(topic_z, 10);
 
   // Create a timer to periodically check for the transform
-  timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(500),
+  timer_ = rclcpp::create_timer(
+    this, this->get_clock(), std::chrono::milliseconds(500),
     std::bind(&RelativeTFListener::timer_callback, this));
 }
 

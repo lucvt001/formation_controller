@@ -16,8 +16,8 @@ FormationShapeBroadcaster::FormationShapeBroadcaster() : Node("formation_shape_b
   static_broadcaster_ = std::make_shared<tf2_ros::StaticTransformBroadcaster>(this);
 
   // Create a timer to publish transforms at 1 Hz
-  timer_ = this->create_wall_timer(
-    std::chrono::seconds(1),
+  timer_ = rclcpp::create_timer(
+    this, this->get_clock(), std::chrono::milliseconds(1000),
     std::bind(&FormationShapeBroadcaster::publish_transforms, this));
 }
 

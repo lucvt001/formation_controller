@@ -20,8 +20,7 @@ TFToPath::TFToPath() : Node("tf_to_path"),
   path_pub_ = this->create_publisher<Path>(path_topic, 1);
 
   // Initialize timer
-  timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(static_cast<int>(1000 / publish_rate)),
+  timer_ = rclcpp::create_timer(this, this->get_clock(), std::chrono::duration<double>(1.0 / publish_rate),
     std::bind(&TFToPath::timer_callback, this));
 
   // Initialize path message
