@@ -13,7 +13,7 @@ using GeoPoint = geographic_msgs::msg::GeoPoint;
 using UTMPoint = geodesy::UTMPoint;
 
 // Convert GPS to FLU coordinates
-inline Point gps_to_body(
+inline Point gps_to_utm(
     const NavSatFix &current_gps,
     const NavSatFix &origin_gps)
 {
@@ -31,12 +31,12 @@ inline Point gps_to_body(
     UTMPoint current_utm(current_geopoint);
     UTMPoint origin_utm(origin_geopoint);
 
-    Point flu;
-    flu.x = current_utm.northing - origin_utm.northing;
-    flu.y = - ( current_utm.easting - origin_utm.easting );
-    flu.z = current_geopoint.altitude - origin_geopoint.altitude;
+    Point utm;
+    utm.x = current_utm.easting - origin_utm.easting;
+    utm.y = current_utm.northing - origin_utm.northing;
+    utm.z = current_geopoint.altitude - origin_geopoint.altitude;
 
-    return flu;
+    return utm;
 };
 
 #endif // GPS_TO_BODY_HPP

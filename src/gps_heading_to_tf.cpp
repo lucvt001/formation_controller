@@ -41,8 +41,8 @@ GPSHeadingToTF::GPSHeadingToTF() : Node("gps_heading_to_tf")
     tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
     // Create a timer to publish the transform at 10 Hz
-    timer_ = this->create_wall_timer(
-        std::chrono::milliseconds(100),
+    timer_ = rclcpp::create_timer(
+        this, this->get_clock(), std::chrono::milliseconds(100),
         std::bind(&GPSHeadingToTF::timer_callback, this));
 }
 
@@ -56,7 +56,7 @@ void GPSHeadingToTF::timer_callback()
     }
 
     // Calculate local position in the body frame
-    Point local_position = gps_to_body(current_gps_, origin_gps_);
+    Point local_position = gps_to_utm(current_gps_, origin_gps_);
 
     // Create a TransformStamped message
     TransformStamped transform;
@@ -69,8 +69,8 @@ void GPSHeadingToTF::timer_callback()
     transform.transform.translation.y = local_position.y;
     transform.transform.translation.z = local_position.z;
 
-    // Set rotation (convert heading from NED degrees to FLU radians)
-    double heading_rad = - current_heading_ * M_PI / 180.0;
+    // Set rotation (convert heading from NED degrees to FLU radians) (plus 90 degrees due to rotation from ENU to FLU)
+    double heading_rad = (-current_heading_ + 90.0) * M_PI / 180.0;
     transform.transform.rotation.x = 0.0;
     transform.transform.rotation.y = 0.0;
     transform.transform.rotation.z = sin(heading_rad / 2.0);
