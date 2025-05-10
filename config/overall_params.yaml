@@ -3,16 +3,16 @@
 
 /**:
   ros__parameters:
-    use_sim_time: true
+    use_sim_time: false
 
 /**/formation_shape_broadcaster:
   ros__parameters:
-    leader_frame: 'leader1/base_link_gt'
+    leader_frame: 'leader1/base_link_gps'
 
 /**/leader_gps_heading_to_tf:   # This node is unnecessary if you use TF tree from the simulation
   ros__parameters:
     current_gps_topic: 'leader1/core/gps'   # Can be changed to fully qualified name if you want to avoid using mqtt
-    origin_gps_topic: 'leader1/origin_gps'  # Can be changed to fully qualified name if you want to avoid using mqtt
+    origin_gps_topic: 'origin_gps'  # Can be changed to fully qualified name if you want to avoid using mqtt
     heading_topic: 'leader1/core/heading'   # Can be changed to fully qualified name if you want to avoid using mqtt
     parent_frame: 'world'
     child_frame: 'leader1/base_link_gps'    # This must be the same as the leader_frame in formation_shape_broadcaster
@@ -20,7 +20,7 @@
 /**/gps_heading_to_tf:        # This node is unnecessary if you use TF tree from the simulation
   ros__parameters:
     current_gps_topic: 'core/gps'
-    origin_gps_topic: '/leader1/origin_gps'    # Can be changed to fully qualified name if you want to avoid using mqtt
+    origin_gps_topic: 'origin_gps'    # Can be changed to fully qualified name if you want to avoid using mqtt
     heading_topic: 'core/heading'
     parent_frame: 'world'
     child_frame: 'NS/base_link_gps'
@@ -28,7 +28,7 @@
 /**/tf_repub_gps:
   ros__parameters:
     parent_frame: 'NS/target'
-    child_frame: 'NS/base_link_gt'    # Either NS/base_link_gps (real life gt) or NS/base_link_gt (in sim, rmb to enable TF)
+    child_frame: 'NS/base_link_gps'    # Either NS/base_link_gps (real life gt) or NS/base_link_gt (in sim, rmb to enable TF)
     topic_x: 'gps/offset_position_x'
     topic_y: 'gps/offset_position_y'
     topic_z: 'gps/offset_position_z'
@@ -54,7 +54,7 @@
     leader2_distance_topic: 'leader2/distance' # Dont change
     state_topic: 'ukf/state'  # Mainly for debugging
     covariance_topic: 'ukf/covariance'  # Mainly for debugging
-    parent_frame: 'leader1/base_link_gt' # This must be the same as the leader_frame in formation_shape_broadcaster
+    parent_frame: 'leader1/base_link_gps' # This must be the same as the leader_frame in formation_shape_broadcaster
     child_frame: 'NS/base_link_ukf'  # This must be the same as the child_frame in tf_repub_ukf
     Q_std: 1.0  # Standard deviation of the process noise
     R_std: 0.4  # Standard deviation of the measurement noise
@@ -63,7 +63,7 @@
 /**/gps_path:
   ros__parameters:
     parent_frame: 'world'
-    child_frame: 'NS/base_link_gt'   # This must be the same as the child_frame in tf_repub_gps
+    child_frame: 'NS/base_link_gps'   # This must be the same as the child_frame in tf_repub_gps
     path_topic: 'path/gps_path' 
 
 /**/ukf_path:
