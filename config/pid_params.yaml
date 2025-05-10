@@ -12,7 +12,7 @@
     kd: 0.3
     scale: 0.1
     is_axis_inverted: -1
-    input_topic: 'ukf/offset_position_y'
+    input_topic: 'gps/offset_position_y'
     output_topic: 'control/steering'
 
 # x_pid
@@ -23,5 +23,5 @@
     kd: 0.15
     min: -0.1
     unwinding_factor: 3.0
-    input_topic: 'ukf/offset_position_x'
+    input_topic: 'gps/offset_position_x'
     output_topic: 'control/throttle'
