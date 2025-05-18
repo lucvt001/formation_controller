@@ -152,6 +152,7 @@ def generate_launch_description() -> LaunchDescription:
     ]
 
     return LaunchDescription([
+        *launch_args,
         *positioning_nodes,
         *visualization_nodes,
         TimerAction(period=1.0, actions=[pid_servers]),
