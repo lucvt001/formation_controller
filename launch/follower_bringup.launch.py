@@ -80,7 +80,7 @@ def generate_launch_description() -> LaunchDescription:
     # Only used for agents relying on ping distance (aka followers)
     ukf_filter = Node(
         name='ukf_filter',
-        executable='position_filter',
+        executable='filter2',
         package='position_filter',
         namespace=ns,
         condition=IfCondition(PythonExpression([use_ukf])),
