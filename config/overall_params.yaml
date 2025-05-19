@@ -58,6 +58,7 @@
     child_frame: 'NS/base_link_ukf'  # This must be the same as the child_frame in tf_repub_ukf
     Q_std: 0.4  # Standard deviation of the process noise
     R_std: 0.4  # Standard deviation of the measurement noise
+    debug_log: false
 
 /**/gps_path:
   ros__parameters:
