@@ -58,7 +58,6 @@
     child_frame: 'NS/base_link_ukf'  # This must be the same as the child_frame in tf_repub_ukf
     Q_std: 0.4  # Standard deviation of the process noise
     R_std: 0.4  # Standard deviation of the measurement noise
-    initial_estimate: [-25.0, 0.0, -25.0, 0.0]  # Initial estimate of the state vector [x, vx, y, vy], FLU frame
 
 /**/gps_path:
   ros__parameters:
